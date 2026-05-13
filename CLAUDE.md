@@ -8,9 +8,10 @@ This repo is a tutorial (教程) on building a personal research knowledge base 
 ## Repository structure
 
 ```
-教程：用 Claude Code + Obsidian + Git + VSCode 构建知识库.md   # Main tutorial article
-.obsidian/                                                      # Obsidian vault config (committed for portability)
-.obsidian/plugins/obsidian-git/                                 # Git integration plugin for Obsidian
+教程：用 Claude Code + Obsidian + Git + VSCode 构建知识库.md
+.obsidian/
+CLAUDE.md
+.gitignore                                                    
 ```
 ## Conventions
 

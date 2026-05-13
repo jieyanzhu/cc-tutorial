@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "CLAUDE.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
@@ -194,7 +194,7 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "689129e92025abda",
+  "active": "589578e0ffd628d5",
   "lastOpenFiles": [
     "jieyan_github.pub",
     "jieyan_github",
