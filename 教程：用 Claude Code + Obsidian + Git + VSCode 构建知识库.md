@@ -14,13 +14,14 @@ tags:
 ---
 ## 目录
 
-1. [四个工具是什么](#一四个工具是什么)
-2. [为什么组合使用](#二为什么组合使用)
-3. [环境准备](#三环境准备)
-4. [Claude Code 用法详解](#四claude-code-用法详解)
-5. [Obsidian 用法详解](#五obsidian-用法详解)
-6. [Git 工作流](#六git-工作流)
-7. [把它们串起来：一次完整循环](#七把它们串起来一次完整循环)
+1. [四个工具是什么](##一、四个工具是什么)
+2. [为什么组合使用](##二、为什么组合使用)
+3. [环境准备](##三、环境准备)
+4. [Claude Code 用法详解](##四、Claude\ Code\ 用法详解)
+5. [Obsidian 用法详解](##五、Obsidian\ 用法详解)
+6. [Git 工作流](##六、Git\ 工作流)
+7. [把它们串起来：一次完整循环](##七、把它们串起来：一次完整循环)
+8. [附录：更改模型、使用其他模型 API](##八、附录：更改模型、使用其他模型\ API)
 
 ---
 
@@ -545,3 +546,122 @@ cd my-wiki
 ```
 
 ---
+
+## 八、附录：更换模型、接入其他 API
+
+Claude Code 默认使用 Anthropic 官方模型，但也支持切换到其他模型，或接入第三方 API（DeepSeek、OpenAI、本地模型等）。
+
+### 1. `/model` 切换模型
+
+在对话框中输入 `/model`，会弹出交互式选择器，列出当前可用模型：
+
+```
+Claude Opus    — 最强推理，适合复杂分析、写长文
+Claude Sonnet  — 平衡型，日常使用首选
+Claude Haiku   — 轻快，适合简单问答、批量处理
+```
+
+方向键选中，回车确认，切换立即生效。也可以直接输入 `/model opus`、`/model sonnet`、`/model haiku` 跳过选择器一步到位。
+
+> `/model` 切换的是当前**会话**的模型，不影响其他会话。
+
+### 2. 通过环境变量接入第三方 API（推荐）
+
+如果不想用 Anthropic 官方模型，最简单的方式是设置环境变量。Claude Code 启动时会读取这些变量，自动将请求转发到指定的 API 端点。
+
+**核心环境变量**：
+
+| 变量 | 说明 |
+|---|---|
+| `ANTHROPIC_BASE_URL` | API 端点地址 |
+| `ANTHROPIC_API_KEY` | API 密钥 |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | 替代 Opus 的模型 ID |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | 替代 Sonnet 的模型 ID |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | 替代 Haiku 的模型 ID |
+| `API_TIMEOUT_MS` | 请求超时时间（毫秒） |
+
+设置后，`/model` 命令仍然显示 Opus / Sonnet / Haiku 三个选项，但实际调用的模型已替换为环境变量指定的模型。
+
+**写入位置**：把变量写入 shell 配置文件（`~/.zshrc` 或 `~/.bashrc`），所有项目生效。也可以写在项目根目录的 `.env` 文件中，只对当前项目生效。
+
+---
+
+**示例一：接入 DeepSeek**
+
+DeepSeek 提供了兼容 Anthropic Messages API 的端点。在 `~/.zshrc` 中添加：
+
+```bash
+# DeepSeek
+export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
+export ANTHROPIC_API_KEY="你的DeepSeek密钥"
+export API_TIMEOUT_MS=300000
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-pro"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro"
+```
+
+然后 `source ~/.zshrc` 或重开终端，启动 Claude Code。现在 `/model sonnet` 和 `/model opus` 实际调用的是 DeepSeek V4 Pro，`/model haiku` 调用 DeepSeek V4 Flash。
+
+---
+
+**示例二：接入本地 Ollama**
+
+如果电脑上跑了 Ollama，同样通过环境变量接入：
+
+```bash
+# 本地 Ollama
+export ANTHROPIC_BASE_URL="http://localhost:11434"
+export ANTHROPIC_API_KEY="ollama"
+export API_TIMEOUT_MS=3000000
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3.5:35b"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3.5:35b"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3.5:35b"
+```
+
+三个模型位置都指向同一个本地模型也没问题——Claude Code 仍可正常使用。
+
+> **安全提醒**：不要把包含真实 API 密钥的 `~/.zshrc` 内容直接粘贴到可共享的配置文件里。如果项目有 `.env` 文件，记得把它写进 `.gitignore`。
+
+### 3. 通过 providers 配置接入（进阶）
+
+环境变量方式简单直接，但只能配一组 API。如果你需要**同时使用多个 provider 并在它们之间切换**，可以用 `providers` 配置。
+
+配置文件位置（优先级高→低）：
+
+| 文件 | 作用范围 |
+|---|---|
+| `.claude/settings.local.json` | 当前项目，仅本机 |
+| `.claude/settings.json` | 当前项目，可随 git 共享 |
+| `~/.claude/settings.json` | 全局，所有项目生效 |
+
+**最简示例**：
+
+```json
+{
+  "providers": {
+    "my-provider": {
+      "name": "My Provider",
+      "type": "openai-compatible",
+      "baseURL": "https://api.example.com/v1",
+      "apiKey": "${MY_API_KEY}",
+      "models": [
+        { "id": "model-name", "name": "显示名称", "reasoning": true }
+      ]
+    }
+  }
+}
+```
+
+关键字段：
+
+| 字段 | 说明 |
+|---|---|
+| `type` | 协议类型，内置支持 `openai-compatible` |
+| `baseURL` | API 端点地址 |
+| `apiKey` | API 密钥，`${ENV_VAR}` 引用环境变量 |
+| `models[].id` | API 调用时传的 model ID |
+| `models[].reasoning` | 是否支持 extended thinking（影响 `/effort` 是否可用） |
+
+配置完成后，`/model` 选择器中会出现自定义 provider 下的模型，与 Anthropic 原生模型并列。
+
+> **大多数情况下，环境变量方式就足够了。** 只有当你需要在多个第三方 API 之间频繁切换时，才需要 providers 配置。
