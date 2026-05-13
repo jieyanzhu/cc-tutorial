@@ -194,8 +194,10 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "589578e0ffd628d5",
+  "active": "689129e92025abda",
   "lastOpenFiles": [
+    "jieyan_github.pub",
+    "jieyan_github",
     "教程：用 Claude Code + Obsidian + Git + VSCode 构建知识库.md",
     "zshrc_tutorial.sb-98d3cdfc-Ct5lLx",
     "zshrc_tutorial",
